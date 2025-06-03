@@ -5,17 +5,21 @@ require("dotenv").config(); // Load environment variables
 
 const app = express();
 
-// ✅ Log Mongoose version
-console.log("✅ Mongoose version:", mongoose.version);
+// ✅ Enable CORS only for your frontend
+app.use(
+  cors({
+    origin: "https://portfolio-tv2x.vercel.app", // 👈 Your actual Vercel frontend URL
+  })
+);
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 
-// ✅ MongoDB Connection (modern)
-mongoose.connect(process.env.MONGODB_URI)
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ DB connected"))
-  .catch(err => {
+  .catch((err) => {
     console.error("❌ DB connection error:", err.message);
   });
 
@@ -24,24 +28,24 @@ const ContactSchema = new mongoose.Schema({
   name: String,
   email: String,
   message: String,
-  phoneno: String
+  phoneno: String,
 });
 
-// ✅ Prevent Overwrite in Dev (Optional but Safe)
+// Prevent overwrite in dev
 mongoose.models = mongoose.models || {};
-const Contact = mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
+const Contact =
+  mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
 
-// ✅ Add root GET route to respond to "/"
+// Root route
 app.get("/", (req, res) => {
   res.send("Welcome to my portfolio backend!");
 });
 
-// POST route for Contact Form
+// POST route for contact form
 app.post("/api/contact", async (req, res) => {
   try {
     const { name, email, message, phoneno } = req.body;
 
-    // Simple validation
     if (!name || !email || !message || !phoneno) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -51,14 +55,13 @@ app.post("/api/contact", async (req, res) => {
 
     console.log("✅ Contact saved to MongoDB");
     res.status(201).json({ message: "Message sent successfully!" });
-
   } catch (err) {
     console.error("❌ Error saving to MongoDB:", err.message);
     res.status(500).json({ error: "Error saving contact info" });
   }
 });
 
-// Optional: 404 handler for unknown routes
+// 404 handler
 app.use((req, res) => {
   res.status(404).send("404 Not Found");
 });
