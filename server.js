@@ -5,10 +5,22 @@ require("dotenv").config(); // Load environment variables
 
 const app = express();
 
-// ✅ Enable CORS only for your frontend
+// ✅ Allow multiple origins (main + preview deployments)
+const allowedOrigins = [
+  "https://portfolio-tv2x.vercel.app",
+  "https://portfolio-tv2x-git-main-charanlingolus-projects.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "https://portfolio-tv2x.vercel.app", // 👈 Your actual Vercel frontend URL
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
   })
 );
 
